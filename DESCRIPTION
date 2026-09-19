@@ -21,3 +21,5 @@ NeedsCompilation: yes
 Packaged: 2026-09-19 01:42:46 UTC; root
 Author: Michael Sumner [aut, cre]
 Maintainer: Michael Sumner <mdsumner@gmail.com>
+URL: https://github.com/hypertidy/cvr
+BugReports: https://github.com/hypertidy/cvr/issues

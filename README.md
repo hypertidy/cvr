@@ -21,8 +21,9 @@ plus `cvr_area()`, `cvr_gap()`, `cvr_n_coord()` for measuring, and
 `cvr_simplify_each()` as the row-wise control case.
 
 Input is anything `wk::as_wkb()` accepts. Output is `wk_wkb`, same
-length, same order, CRS carried through. **wk is the only
-dependency** - no sf anywhere, including in the tests and the demo.
+length, same order, CRS carried through. Package wk is the interop
+provider. 
+
 Read your data however you like:
 
 ```r
