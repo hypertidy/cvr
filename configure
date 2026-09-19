@@ -1,0 +1,46 @@
+#!/bin/sh
+# Locate GEOS and confirm it is new enough for the coverage API.
+# Override the discovery with GEOS_CONFIG=/path/to/geos-config.
+
+GEOS_CONFIG=${GEOS_CONFIG:-geos-config}
+
+if ! "${GEOS_CONFIG}" --version >/dev/null 2>&1; then
+  echo "------------------------- ERROR -------------------------"
+  echo "geos-config was not found on PATH."
+  echo ""
+  echo "cvr needs the GEOS C library and headers, version 3.12.0"
+  echo "or later (that is when the coverage API was added)."
+  echo ""
+  echo "  Debian/Ubuntu:  apt-get install libgeos-dev"
+  echo "  Fedora:         dnf install geos-devel"
+  echo "  macOS:          brew install geos"
+  echo ""
+  echo "If geos-config is installed somewhere else, set GEOS_CONFIG"
+  echo "to its full path and reinstall."
+  echo "---------------------------------------------------------"
+  exit 1
+fi
+
+GEOS_VERSION=`"${GEOS_CONFIG}" --version`
+GEOS_MAJOR=`echo "${GEOS_VERSION}" | cut -d. -f1`
+GEOS_MINOR=`echo "${GEOS_VERSION}" | cut -d. -f2`
+
+if [ "${GEOS_MAJOR}" -lt 3 ] || { [ "${GEOS_MAJOR}" -eq 3 ] && [ "${GEOS_MINOR}" -lt 12 ]; }; then
+  echo "------------------------- ERROR -------------------------"
+  echo "Found GEOS ${GEOS_VERSION}, but cvr needs 3.12.0 or later."
+  echo "GEOSCoverageSimplifyVW, GEOSCoverageIsValid and"
+  echo "GEOSCoverageUnion were added in 3.12.0."
+  echo "---------------------------------------------------------"
+  exit 1
+fi
+
+cvr_cflags=`"${GEOS_CONFIG}" --cflags`
+cvr_libs=`"${GEOS_CONFIG}" --clibs`
+
+echo "cvr: using GEOS ${GEOS_VERSION} (${GEOS_CONFIG})"
+
+sed -e "s|@cvr_cflags@|${cvr_cflags}|" \
+    -e "s|@cvr_libs@|${cvr_libs}|" \
+    src/Makevars.in > src/Makevars
+
+exit 0

@@ -1,0 +1,23 @@
+Package: cvr
+Title: Polygonal Coverage Operations via GEOS
+Version: 0.0.0.9000
+Authors@R: 
+    person("Michael", "Sumner", email = "mdsumner@gmail.com", role = c("aut", "cre"))
+Description: Bindings to the GEOS coverage API: topology-preserving
+    simplification of polygonal coverages, coverage validation, and
+    coverage union. These are set-level operators that consume a whole
+    vector of polygons as one coverage and return a result parallel to
+    it, so shared edges are simplified once and stay edge-matched in
+    both neighbours. Geometry is exchanged as well-known binary, so any
+    'wk' compatible vector is accepted and returned. Requires GEOS
+    3.12.0 or later.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.0)
+Imports: wk
+SystemRequirements: GEOS (>= 3.12.0)
+RoxygenNote: 7.3.2
+NeedsCompilation: yes
+Packaged: 2026-09-19 01:42:46 UTC; root
+Author: Michael Sumner [aut, cre]
+Maintainer: Michael Sumner <mdsumner@gmail.com>

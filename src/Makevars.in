@@ -1,0 +1,2 @@
+PKG_CPPFLAGS = @cvr_cflags@
+PKG_LIBS = @cvr_libs@
