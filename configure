@@ -1,6 +1,15 @@
 #!/bin/sh
-# Locate GEOS and confirm it is new enough for the coverage API.
-# Override the discovery with GEOS_CONFIG=/path/to/geos-config.
+# Check that GEOS is present and new enough for the coverage API,
+# then guarantee src/Makevars exists.
+#
+# src/Makevars is committed, because devtools::load_all() and
+# R CMD SHLIB never run this script and need the flags anyway. But it
+# is rewritten here too, so a missing or stale copy cannot survive an
+# install. Without those flags the link SUCCEEDS with undefined GEOS
+# symbols and only fails later at load time, which is a miserable
+# thing to debug.
+#
+# Override discovery with GEOS_CONFIG=/path/to/geos-config.
 
 GEOS_CONFIG=${GEOS_CONFIG:-geos-config}
 
@@ -34,13 +43,14 @@ if [ "${GEOS_MAJOR}" -lt 3 ] || { [ "${GEOS_MAJOR}" -eq 3 ] && [ "${GEOS_MINOR}"
   exit 1
 fi
 
-cvr_cflags=`"${GEOS_CONFIG}" --cflags`
-cvr_libs=`"${GEOS_CONFIG}" --clibs`
+cat > src/Makevars <<EOF
+# Written by ./configure. A committed copy is also kept in the repo
+# for build paths that never run configure (devtools::load_all(),
+# R CMD SHLIB). Do not add a 'cleanup' script that deletes this file.
+GEOS_CONFIG ?= ${GEOS_CONFIG}
+PKG_CPPFLAGS = \$(shell \$(GEOS_CONFIG) --cflags)
+PKG_LIBS = \$(shell \$(GEOS_CONFIG) --clibs)
+EOF
 
 echo "cvr: using GEOS ${GEOS_VERSION} (${GEOS_CONFIG})"
-
-sed -e "s|@cvr_cflags@|${cvr_cflags}|" \
-    -e "s|@cvr_libs@|${cvr_libs}|" \
-    src/Makevars.in > src/Makevars
-
 exit 0

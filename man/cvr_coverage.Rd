@@ -7,9 +7,9 @@
 \alias{cvr_invalid_edges}
 \alias{cvr_union}
 \alias{cvr_n_coord}
+\alias{cvr_simplify_each}
 \alias{cvr_area}
 \alias{cvr_gap}
-\alias{cvr_simplify_each}
 \title{Polygonal coverage operations}
 \usage{
 cvr_simplify(x, tolerance, boundary = TRUE)
@@ -22,53 +22,54 @@ cvr_union(x)
 
 cvr_n_coord(x)
 
+cvr_simplify_each(x, tolerance)
+
 cvr_area(x)
 
 cvr_gap(x)
-
-cvr_simplify_each(x, tolerance)
 }
 \arguments{
-\item{x}{A vector of polygons: anything \code{\link[wk:wkb]{wk::as_wkb()}} accepts, such
-as a \code{wk_wkb}, \code{wk_wkt}, \code{sfc} or \code{sf} object. All members must be
+\item{x}{A vector of polygons: anything [wk::as_wkb()] accepts, such
+as a `wk_wkb`, `wk_wkt`, `sfc` or `sf` object. All members must be
 POLYGON or MULTIPOLYGON.}
 
-\item{tolerance}{Simplification tolerance in the units of \code{x},
+\item{tolerance}{Simplification tolerance in the units of `x`,
 roughly the square root of the area of the triangles removed.
 Length 1.}
 
 \item{boundary}{Simplify the outer boundary of the coverage as well
-as the inner shared edges? \code{FALSE} simplifies inner edges only.}
+as the inner shared edges? `FALSE` simplifies inner edges only.}
 
 \item{gap_width}{The maximum width of gaps to report as invalid.}
 }
 \value{
-\code{cvr_simplify()} a \code{wk_wkb} the same length as \code{x}, in the same
-order, carrying the CRS of \code{x}.
+`cvr_simplify()` a `wk_wkb` the same length as `x`, in the same
+order, carrying the CRS of `x`.
 
-\code{cvr_is_valid()} a single \code{TRUE} or \code{FALSE} for the coverage as a
+`cvr_is_valid()` a single `TRUE` or `FALSE` for the coverage as a
 whole.
 
-\code{cvr_invalid_edges()} a \code{wk_wkb} the same length as \code{x}: a
+`cvr_invalid_edges()` a `wk_wkb` the same length as `x`: a
 MULTILINESTRING of the offending edges for each invalid member, and
 an empty geometry where that member is a valid participant.
 
-\code{cvr_union()} a length-1 \code{wk_wkb}.
+`cvr_union()` a length-1 `wk_wkb`.
 
-\code{cvr_n_coord()} a numeric vector of vertex counts, one per member.
+`cvr_n_coord()` a numeric vector of vertex counts, one per member.
 
-\code{cvr_area()} a numeric vector of planar areas, one per member.
+`cvr_area()` a numeric vector of planar areas, one per member.
 
-\code{cvr_simplify_each()} a \code{wk_wkb} the same length as \code{x}, each
-member simplified independently. The control case, not the one to
-use: it is here so the cost of ignoring neighbours can be measured.
+`cvr_simplify_each()` a `wk_wkb` the same length as `x`, each
+member simplified independently with
+`GEOSTopologyPreserveSimplify`. The control case, not the one to
+use: same library, same algorithm family, but no knowledge of
+neighbours. It is here so the cost of ignoring them can be
+measured rather than asserted.
 
-\code{cvr_gap()} a single number: the absolute difference between the
+`cvr_gap()` a single number: the absolute difference between the
 summed member areas and the area of their union. Zero for a
 coverage. Grows as soon as shared edges drift apart, so it is the
-direct test of whether a simplification stayed edge-matched. Uses
-a general union, so it still reports on input that has stopped
-being a coverage.
+direct test of whether a simplification stayed edge-matched.
 }
 \description{
 Bindings to the GEOS coverage API (GEOS >= 3.12). A polygonal
@@ -79,18 +80,18 @@ neighbours.
 \details{
 These are set-level operators, not row-wise ones. They consume the
 whole vector as a single coverage and return a result parallel to
-it. This is why PostGIS exposes \code{ST_CoverageSimplify} as a window
+it. This is why PostGIS exposes `ST_CoverageSimplify` as a window
 function rather than an ordinary one, and why the result of
-\code{cvr_simplify()} cannot be computed feature by feature.
+`cvr_simplify()` cannot be computed feature by feature.
 
-\code{cvr_simplify()} applies a Visvalingam-Whyatt simplification to the
+`cvr_simplify()` applies a Visvalingam-Whyatt simplification to the
 coverage edges. Shared edges are simplified once and stay identical
 in both neighbours, so no gaps or overlaps open up. Node points
 (inner vertices shared by three or more polygons, boundary vertices
 shared by two or more) are never moved. Features never disappear,
 though they may be reduced to a triangle.
 
-With \code{boundary = FALSE} only the inner, shared edges are simplified
+With `boundary = FALSE` only the inner, shared edges are simplified
 and the outer boundary of the coverage is left untouched. A subset
 simplified this way still fits exactly against the rest of the
 coverage, which is what makes chunked or incremental generalization

@@ -21,9 +21,8 @@ plus `cvr_area()`, `cvr_gap()`, `cvr_n_coord()` for measuring, and
 `cvr_simplify_each()` as the row-wise control case.
 
 Input is anything `wk::as_wkb()` accepts. Output is `wk_wkb`, same
-length, same order, CRS carried through. Package wk is the interop
-provider. 
-
+length, same order, CRS carried through. **wk is the only
+dependency** - no sf anywhere, including in the tests and the demo.
 Read your data however you like:
 
 ```r
@@ -125,8 +124,58 @@ apt-get install libgeos-dev     # or: brew install geos, dnf install geos-devel
 R CMD INSTALL cvr
 ```
 
-`configure` finds GEOS via `geos-config` and refuses to build against
-anything older than 3.12. Set `GEOS_CONFIG` to override discovery.
+then `library(cvr)`. There is a compiled DLL, so `source()`ing the R
+files will not work - the `.Call` targets are native symbol objects
+that only exist once the namespace loads the DLL, and you get
+`object 'cvr_c_simplify' not found`.
+
+The same error, from a much less obvious cause, if `@useDynLib` goes
+missing: NAMESPACE is roxygen-generated, so the directive has to live
+in the sources (`R/cvr-package.R`) or the first `document()` silently
+drops the `useDynLib` line. The package then builds, installs and
+loads perfectly cleanly and every `.Call()` fails. Keep the tag on
+its own line - roxygen tags run to the next tag, so trailing prose in
+that block becomes part of the directive.
+
+`devtools::load_all()` and `R CMD SHLIB` also work: `src/Makevars`
+discovers GEOS itself rather than relying on `configure` to write it,
+because neither of those runs `configure`. Without that, the link
+silently succeeds with undefined GEOS symbols and fails later at load
+time with `undefined symbol: GEOSCoverageUnion_r`.
+
+`configure` also rewrites `src/Makevars`, so a missing or stale copy
+cannot survive an install even if something deleted it.
+
+If you see `undefined symbol: GEOSCoverageUnion_r` anyway, the link
+ran without `-lgeos_c`. Check the link line in the build log: if it
+ends `-o cvr.so coverage.o init.o -L/usr/lib/R/lib -lR` with no
+`-lgeos_c`, that is the whole problem. Two causes:
+
+**Stale objects.** make compares timestamps, so `.o` files from an
+earlier build are newer than the sources and the link rule never
+runs again - `make: Nothing to be done for 'all'`. Fixing the flags
+cannot help because nothing rebuilds.
+
+```r
+pkgbuild::clean_dll()     # or: rm src/*.o src/*.so
+```
+
+**A stray `cleanup` script.** An early version of this package
+generated `src/Makevars` from `Makevars.in` and shipped a `cleanup`
+script that deleted it. If either file is still in your working copy,
+delete them - extracting a newer tarball over a directory never
+removes files. `R CMD build` runs `cleanup` against its staging copy,
+so the *tarball* comes out with no `src/Makevars` while your source
+directory still has one. That gives the signature symptom: `R CMD
+INSTALL .` works, installing the tarball fails.
+
+```sh
+rm -f cleanup src/Makevars.in
+```
+
+`configure` is only a gate: it refuses to build against GEOS older
+than 3.12 and prints install hints. Set `GEOS_CONFIG` to point at a
+particular `geos-config`; both the gate and the Makevars honour it.
 
 ## Notes
 

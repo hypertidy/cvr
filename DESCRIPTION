@@ -15,11 +15,9 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.0)
 Imports: wk
-SystemRequirements: GEOS (>= 3.12.0)
-RoxygenNote: 7.3.2
+SystemRequirements: GEOS (>= 3.12.0), GNU make
 NeedsCompilation: yes
-Packaged: 2026-09-19 01:42:46 UTC; root
+Packaged: 2026-09-19 05:21:59 UTC; root
 Author: Michael Sumner [aut, cre]
 Maintainer: Michael Sumner <mdsumner@gmail.com>
-URL: https://github.com/hypertidy/cvr
-BugReports: https://github.com/hypertidy/cvr/issues
+Config/roxygen2/version: 8.1.0

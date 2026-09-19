@@ -1,0 +1,6 @@
+# Written by ./configure. A committed copy is also kept in the repo
+# for build paths that never run configure (devtools::load_all(),
+# R CMD SHLIB). Do not add a 'cleanup' script that deletes this file.
+GEOS_CONFIG ?= geos-config
+PKG_CPPFLAGS = $(shell $(GEOS_CONFIG) --cflags)
+PKG_LIBS = $(shell $(GEOS_CONFIG) --clibs)

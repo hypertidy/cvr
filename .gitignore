@@ -5,3 +5,6 @@
 .DS_Store
 .quarto
 arcs-proto
+src/*.so
+src/*.o
+cvr.Rproj
